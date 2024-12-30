@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Meovv's Dictionary</title>
+	<style>
+		.dictionary {
+			display: block;
+			margin: 0 auto;
+			width: 610px;
+			margin-top: 20px;
+			margin-bottom: 20px;
+			border: 1px solid #DBDFEA;
+			border-radius: 20px;
+			padding: 20px;
+			background-color: #e8ecf7;
+			box-shadow: 1px 10px 10px #4b6670;
+		}
+
+		h1 {
+			text-align: center;
+			margin-bottom: 20px;
+		}
+
+		div input {
+			width: 70%;
+			padding: 10px;
+			margin-bottom: 10px;
+			border: 1px solid #ccc;
+			border-radius: 5px;
+		}
+
+		div button {
+			width: 20%;
+			padding: 10px 15px;
+			border: none;
+			background-color: #3A98B9;
+			color: #fff;
+			border-radius: 5px;
+		}
+
+		ul {
+			display: inline-block;
+		}
+
+		.word {
+			font-weight: bold;
+			font-size: 32px;
+		}
+	</style>
+</head>
+<body>
+	<div class="dictionary">
+		<h1>Meovv's Dictionary</h1>
+		<input type="text" id="wordInput" placeholder="Enter a word...">
+		<button id="searchBtn" onclick="searchWord()">Search</button>
+		<div id="resultDiv">
+
+		</div>
+	</div>
+
+	<script>
+		async function searchWord() {
+			const word = document.getElementById("wordInput").value;
+			const resultDiv = document.getElementById("resultDiv");
+			resultDiv.innerHTML = "Loading...";
+
+			if (!word) {
+				resultDiv.innerHTML = "Please enter a word!";
+				return;
+			}
+
+			try {
+				const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${word}`);
+				if (!response.ok) {
+					throw new Error("Word not found!")
+				}
+
+				const data = await response.json();
+				const wordData = data[0];
+				const meanings = wordData.meanings;
+				const phonetics = wordData.phonetics[0] ?.text || "";
+
+				let resultHTML = `<span class="word">${wordData.word}</span>  `;
+
+				resultHTML += `<span>${phonetics}</span>`;
+
+				meanings.forEach((meaning) => {
+					resultHTML += `
+							<h3><i>${meaning.partOfSpeech}</i></h3>
+							<p><b>Definitions:</b></p>
+							<ul>
+								${meaning.definitions.map((d) => `<li>${d.definition} ${d.example ? `<br><b>Example: </b>${d.example}` : ""}</li>`).join("")}
+							</ul>
+
+							${meaning.synonyms.length ? `<p><b>Synonyms:</b> ${meaning.synonyms.join(", ")}</p> ` : ""}
+
+							${meaning.antonyms.length ? `<p><b>Antonyms:</b> ${meaning.antonyms.join(", ")}</p> ` : ""}
+
+							<hr>
+					`
+				});
+
+				resultDiv.innerHTML = resultHTML;
+
+			} catch (error) {
+				resultDiv.innerHTML = error.message;
+			}
+			
+		}
+	</script>
+</body>
+</html>
